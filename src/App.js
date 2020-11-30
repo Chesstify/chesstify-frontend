@@ -1,6 +1,12 @@
 function App() {
   return (
-    <h1>Hello World</h1>
+    <form>
+      <label>
+        Profile:
+        <input type="text" />
+      </label>
+      <input type="submit" value="Search" />
+    </form>
   );
 }
 
