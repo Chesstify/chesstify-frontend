@@ -5,7 +5,7 @@ function App() {
         Profile:
         <input type="text" />
       </label>
-      <input type="submit" value="Search" />
+      <input type="submit" value="Enter" />
     </form>
   );
 }
