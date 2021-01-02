@@ -1,12 +1,20 @@
+import React from "react";
+
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+
 function App() {
   return (
-    <form>
-      <label>
-        Profile:
-        <input type="text" />
-      </label>
-      <input type="submit" value="Enter" />
-    </form>
+    <Router>
+      <Switch>
+        <Route path="/" />
+        <Route path="/games/:username" />
+      </Switch>
+    </Router>
   );
 }
 
