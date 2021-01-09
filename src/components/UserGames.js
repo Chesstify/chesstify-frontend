@@ -1,71 +1,49 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Games from './Games.js';
 
-import { useParams } from 'react-router-dom';
+const UserGames = props => {
+	const URL = 'http://127.0.0.1:5000';
 
-// TODO: Remove this when backend is ready
-import mockData from '../mockData';
+	const { username } = props.match.params;
 
-const UserGames = () => {
-	const { username } = useParams();
-
-	const [data, setData] = useState({});
+	const [games, setGames] = useState([]);
+	const [currentPage, setCurrentPage] = useState(`${URL}/games/${username}?useCache=false&pageNumber=0&pageSize=10`);
+	const [nextPage, setNextPage] = useState();
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		/**
-		 * Queries the backend for the games pertaining to a specified user.
-		 * 
-		 * @param {String} username Fetch the games for this username
-		 */
-		const getData = async username => {
-			// TODO: Replace URL with backend URL for fetching a user's games
-			const response = await fetch(`https://jsonplaceholder.typicode.com/todos/1`);
-			const json = await response.json();
+		setLoading(true); // When this component reloads, and before the data is fetched, set loading to true
 
-			setData(json);
+		let cancelRequest; // Stores the current request which can be invoked to cancel it
+
+		const getGames = async () => {
+			const { data } = await axios.get(currentPage, { cancelToken: axios.CancelToken(request => cancelRequest = request) });
+			setLoading(false); // Data has been fetched, set loading to false
+			setNextPage(data.next_page);
+			setGames(oldGames => [...oldGames, ...data.games]); // Append the new fetched games to the current ones
 		}
 
-		getData();
-	});
+		getGames();
 
-	const games = [];
+		// Prevent race conditions by cancelling old requests before creating new ones
+		return () => cancelRequest();
+	}, [currentPage]);
 
-	// TODO: Replace mockData with data
-	mockData.games.map(({ date, mode, position, opponent, result, rating }) => {
-		games.push(
-			<tr>
-				<td>{date}</td>
-				<td>{mode}</td>
-				<td>{position}</td>
-				<td>{opponent}</td>
-				<td>{result}</td>
-				<td>{rating.total} ({rating.change})</td>
-			</tr>
-		);
-	});
+	// Set the current page to be the next page URL when invoked
+	const loadNextPage = () => setCurrentPage(`${URL}${nextPage}`);
 
-  return (
-		<Fragment>
-			<h1>{mockData.user} stats</h1>
-			<h3>{mockData.total_games} games</h3>
+	if (loading) return (
+		<h1>Loading</h1>
+	);
 
-			{/* Currently displays all games by default */}
-			<table>
-				<thead>
-					<tr>
-						<th>Date</th>
-						<th>Mode</th>
-						<th>Position</th>
-						<th>Opponent</th>
-						<th>Result</th>
-						<th>Rating</th>
-					</tr>
-				</thead>
-				<tbody>
-					{games}
-				</tbody>
-			</table>
-		</Fragment>
-  );
+	return (
+		<>
+			<h1>{username}</h1>
+			<Games games={games} />
+			<button onClick={loadNextPage}>Next</button>
+		</>
+	);
 }
 
 export default UserGames;
